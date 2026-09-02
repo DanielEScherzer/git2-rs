@@ -1,5 +1,3 @@
-#![expect(clippy::undocumented_unsafe_blocks)]
-
 use crate::util::{self, Binding};
 use crate::{raw, signature, Error, ErrorClass, ErrorCode, Oid, Repository, Signature};
 use libc::c_char;
@@ -32,6 +30,7 @@ pub struct BlameIter<'blame> {
     blame: &'blame Blame<'blame>,
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Blame<'repo> {
     /// Get blame data for a file that has been modified in memory.
     ///
@@ -107,6 +106,7 @@ impl<'repo> Blame<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'blame> BlameHunk<'blame> {
     unsafe fn from_raw_const(raw: *const raw::git_blame_hunk) -> BlameHunk<'blame> {
         BlameHunk {
@@ -244,6 +244,7 @@ impl Default for BlameOptions {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl BlameOptions {
     /// Initialize options
     pub fn new() -> BlameOptions {
@@ -350,6 +351,7 @@ impl<'repo> Binding for Blame<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for Blame<'repo> {
     fn drop(&mut self) {
         unsafe { raw::git_blame_free(self.raw) }
