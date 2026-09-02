@@ -428,9 +428,11 @@ impl<'repo> Binding for Blame<'repo> {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for Blame<'repo> {
     fn drop(&mut self) {
+        // SAFETY: git_blame_free() is passed a valid pointer to a
+        // blame object; after this drop function it will never be accessed
+        // again.
         unsafe { raw::git_blame_free(self.raw) }
     }
 }
