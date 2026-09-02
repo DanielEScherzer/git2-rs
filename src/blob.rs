@@ -1,5 +1,3 @@
-#![expect(clippy::undocumented_unsafe_blocks)]
-
 use std::io;
 use std::marker;
 use std::mem;
@@ -16,6 +14,7 @@ pub struct Blob<'repo> {
     _marker: marker::PhantomData<Object<'repo>>,
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Blob<'repo> {
     /// Get the id (SHA1) of a repository blob
     pub fn id(&self) -> Oid {
@@ -79,6 +78,7 @@ impl<'repo> Clone for Blob<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for Blob<'repo> {
     fn drop(&mut self) {
         unsafe { raw::git_blob_free(self.raw) }
@@ -92,6 +92,7 @@ pub struct BlobWriter<'repo> {
     _marker: marker::PhantomData<Object<'repo>>,
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> BlobWriter<'repo> {
     /// Finalize blob writing stream and write the blob to the object db
     pub fn commit(mut self) -> Result<Oid, Error> {
@@ -120,6 +121,7 @@ impl<'repo> Binding for BlobWriter<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for BlobWriter<'repo> {
     fn drop(&mut self) {
         // We need cleanup in case the stream has not been committed
@@ -131,6 +133,7 @@ impl<'repo> Drop for BlobWriter<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> io::Write for BlobWriter<'repo> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let write_cb = unsafe { (*self.raw).write };
