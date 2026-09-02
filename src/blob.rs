@@ -95,9 +95,10 @@ impl<'repo> Clone for Blob<'repo> {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for Blob<'repo> {
     fn drop(&mut self) {
+        // SAFETY: git_blob_free() is passed a valid pointer to a blob object;
+        // after this drop function it will never be accessed again.
         unsafe { raw::git_blob_free(self.raw) }
     }
 }
