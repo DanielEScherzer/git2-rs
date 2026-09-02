@@ -310,17 +310,24 @@ impl Default for BlameOptions {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl BlameOptions {
     /// Initialize options
     pub fn new() -> BlameOptions {
+        // SAFETY: the zero-initialized blame options may not be fully valid
+        // but they are only used if the propert initialization by libgit2 below
+        // is successful.
         let mut raw: raw::git_blame_options = unsafe { mem::zeroed() };
 
         assert_eq!(
+            // SAFETY: the pointer provided comes from a mutable reference;
+            // since we have a reference, the pointer is valid, and since it
+            // is a mutable reference, it is valid to write to.
             unsafe { raw::git_blame_init_options(&mut raw, raw::GIT_BLAME_OPTIONS_VERSION) },
             0
         );
 
+        // SAFETY: the raw git_blame_options object is valid and can be
+        // converted into a pointer.
         unsafe { Binding::from_raw(&raw as *const _ as *mut _) }
     }
 
@@ -375,6 +382,8 @@ impl BlameOptions {
 
     /// Setter for the id of the newest commit to consider.
     pub fn newest_commit(&mut self, id: Oid) -> &mut BlameOptions {
+        // SAFETY: Oid::raw() returns a raw pointer that is safe to dereference
+        // into a git_oid object.
         unsafe {
             self.raw.newest_commit = *id.raw();
         }
@@ -383,6 +392,8 @@ impl BlameOptions {
 
     /// Setter for the id of the oldest commit to consider.
     pub fn oldest_commit(&mut self, id: Oid) -> &mut BlameOptions {
+        // SAFETY: Oid::raw() returns a raw pointer that is safe to dereference
+        // into a git_oid object.
         unsafe {
             self.raw.oldest_commit = *id.raw();
         }
