@@ -146,11 +146,12 @@ impl<'repo> Binding for BlobWriter<'repo> {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for BlobWriter<'repo> {
     fn drop(&mut self) {
         // We need cleanup in case the stream has not been committed
         if self.need_cleanup {
+            // SAFETY: if self.need_cleanup is false then the raw pointer is
+            // valid to read from.
             if let Some(f) = unsafe { (*self.raw).free } {
                 f(self.raw)
             }
