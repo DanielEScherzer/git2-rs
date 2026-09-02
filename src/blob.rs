@@ -10,24 +10,32 @@ use crate::{raw, Error, Object, Oid};
 ///
 /// [1]: http://git-scm.com/book/en/Git-Internals-Git-Objects
 pub struct Blob<'repo> {
+    // Pointer must never be NULL, and must always be valid to read and write.
     raw: *mut raw::git_blob,
     _marker: marker::PhantomData<Object<'repo>>,
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Blob<'repo> {
     /// Get the id (SHA1) of a repository blob
     pub fn id(&self) -> Oid {
+        // SAFETY: git_blob_id() is passed a valid pointer to a blob
+        // object; the returned git_oid is valid to create an Oid from.
         unsafe { Binding::from_raw(raw::git_blob_id(&*self.raw)) }
     }
 
     /// Determine if the blob content is most certainly binary or not.
     pub fn is_binary(&self) -> bool {
+        // SAFETY: git_blob_is_binary() is passed a valid pointer to a blob
+        // object.
         unsafe { raw::git_blob_is_binary(&*self.raw) == 1 }
     }
 
     /// Get the content of this blob.
     pub fn content(&self) -> &[u8] {
+        // SAFETY: git_blob_rawcontent() is passed a valid pointer to a blob
+        // object, as is git_blob_rawsize(). The constructed slice has the
+        // correct length, and the use of a non-mutable reference means that
+        // the underlying data will not be changed while the slice still exists.
         unsafe {
             let data = raw::git_blob_rawcontent(&*self.raw) as *const u8;
             let len = raw::git_blob_rawsize(&*self.raw) as usize;
@@ -37,17 +45,26 @@ impl<'repo> Blob<'repo> {
 
     /// Get the size in bytes of the contents of this blob.
     pub fn size(&self) -> usize {
+        // SAFETY: git_blob_rawsize() is passed a valid pointer to a blob
+        // object.
         unsafe { raw::git_blob_rawsize(&*self.raw) as usize }
     }
 
     /// Casts this Blob to be usable as an `Object`
     pub fn as_object(&self) -> &Object<'repo> {
+        // SAFETY: Blob and Object are compatible, see into_object()
+        // safety comment below.
         unsafe { &*(self as *const _ as *const Object<'repo>) }
     }
 
     /// Consumes Blob to be returned as an `Object`
     pub fn into_object(self) -> Object<'repo> {
         assert_eq!(mem::size_of_val(&self), mem::size_of::<Object<'_>>());
+        // SAFETY: both Blob and Object have a single pointer field (git_blob
+        // and git_object respectively), and a PhantomData marker with the
+        // lifetime of the repository. The markers are trivially compatible.
+        // The pointed-to types are compatible - the git_blob starts with a
+        // git_object.
         unsafe { mem::transmute(self) }
     }
 }
