@@ -1,4 +1,5 @@
 //! Bindings to libgit2's git_libgit2_opts function.
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use std::ffi::CString;
 use std::ptr;

@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::slice;

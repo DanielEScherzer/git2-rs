@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use core::ops::Range;
 use std::ffi::CStr;
 use std::ffi::CString;

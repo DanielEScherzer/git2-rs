@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::{c_int, c_uint, c_void, size_t};
 use std::marker;
 use std::path::Path;

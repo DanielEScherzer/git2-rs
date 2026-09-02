@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::size_t;
 use std::iter::FusedIterator;
 use std::marker;

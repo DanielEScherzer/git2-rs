@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use crate::build::CheckoutBuilder;
 use crate::util::{self, Binding};
 use crate::{panic, raw, IntoCString, Oid, Signature, StashApplyProgress, StashFlags};

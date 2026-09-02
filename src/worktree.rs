@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use crate::buf::Buf;
 use crate::reference::Reference;
 use crate::repo::Repository;

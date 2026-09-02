@@ -1,4 +1,5 @@
 //! Bindings to libgit2's raw `git_oidarray` type
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use std::ops::Deref;
 

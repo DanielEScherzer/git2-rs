@@ -34,6 +34,9 @@ tempfile = "3.1.0"
 trybuild = "1.0.117"
 url = "2.5.4"
 
+[lints.clippy]
+undocumented_unsafe_blocks = "warn"
+
 [features]
 unstable = []
 # Experimental SHA256 OID support,

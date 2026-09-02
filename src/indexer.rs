@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::ffi::CStr;
 use std::path::Path;
 use std::{io, marker, mem, ptr};

@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::ffi::CString;
 use std::marker;
 use std::str;

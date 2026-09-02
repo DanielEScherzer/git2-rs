@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::{c_char, c_uint, c_ushort, size_t};
 use std::ffi::CString;
 use std::marker;

@@ -1,4 +1,5 @@
 //! Builder-pattern objects for configuration various git operations.
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use libc::{c_char, c_int, c_uint, c_void, size_t};
 use std::ffi::{CStr, CString};

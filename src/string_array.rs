@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 //! Bindings to libgit2's raw `git_strarray` type
 
 use std::iter::FusedIterator;

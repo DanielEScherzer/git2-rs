@@ -1,5 +1,6 @@
 //! Certificate types which are passed to `CertificateCheck` in
 //! `RemoteCallbacks`.
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use std::marker;
 use std::mem;

@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 #[cfg(feature = "cred")]
 use log::{debug, trace};
 use std::ffi::CString;

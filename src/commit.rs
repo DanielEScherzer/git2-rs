@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::iter::FusedIterator;
 use std::marker;
 use std::mem;

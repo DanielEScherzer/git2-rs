@@ -1,5 +1,6 @@
 //! git_apply support
 //! see original: <https://github.com/libgit2/libgit2/blob/master/include/git2/apply.h>
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use crate::{panic, raw, util::Binding, DiffDelta, DiffHunk};
 use libc::c_int;

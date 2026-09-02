@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::{c_int, c_void};
 use std::marker::PhantomData;
 use std::path::Path;

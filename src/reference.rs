@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::cmp::Ordering;
 use std::ffi::CString;
 use std::marker;

@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use crate::util::Binding;
 use crate::{raw, Error, Oid};
 use std::marker;

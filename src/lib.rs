@@ -921,6 +921,7 @@ fn opt_cstr<T: IntoCString>(o: Option<T>) -> Result<Option<CString>, Error> {
 
 impl ObjectType {
     /// Convert an object type to its string representation.
+    #[expect(clippy::undocumented_unsafe_blocks)]
     pub fn str(&self) -> &'static str {
         let data;
         unsafe {
@@ -931,6 +932,7 @@ impl ObjectType {
     }
 
     /// Determine if the given git_object_t is a valid loose object type.
+    #[expect(clippy::undocumented_unsafe_blocks)]
     pub fn is_loose(&self) -> bool {
         unsafe { call!(raw::git_object_typeisloose(*self)) == 1 }
     }
@@ -954,6 +956,7 @@ impl ObjectType {
 
     /// Convert a string object type representation to its object type.
     #[expect(clippy::should_implement_trait)]
+    #[expect(clippy::undocumented_unsafe_blocks)]
     pub fn from_str(s: &str) -> Option<ObjectType> {
         let raw = unsafe { call!(raw::git_object_string2type(CString::new(s).unwrap())) };
         ObjectType::from_raw(raw)

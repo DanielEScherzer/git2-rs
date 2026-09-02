@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use crate::util::{self, Binding};
 use crate::{raw, signature, Error, ErrorClass, ErrorCode, Oid, Repository, Signature};
 use libc::c_char;

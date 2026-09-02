@@ -1,3 +1,4 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
 use crate::raw;
 use std::ptr;
 use std::str;

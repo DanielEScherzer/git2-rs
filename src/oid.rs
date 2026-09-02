@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};

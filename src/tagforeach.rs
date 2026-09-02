@@ -1,5 +1,6 @@
 //! git_tag_foreach support
 //! see original: <https://libgit2.org/libgit2/#HEAD/group/tag/git_tag_foreach>
+#![expect(clippy::undocumented_unsafe_blocks)]
 
 use crate::{panic, raw, util::Binding, Oid};
 use libc::{c_char, c_int};

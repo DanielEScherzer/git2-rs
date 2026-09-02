@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::c_int;
 use std::env::JoinPathsError;
 use std::error;

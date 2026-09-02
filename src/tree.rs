@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use libc::{c_char, c_int, c_void};
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};

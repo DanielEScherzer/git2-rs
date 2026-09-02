@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::marker;
 use std::mem;
 use std::os::raw::c_int;

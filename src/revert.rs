@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use std::mem;
 
 use crate::build::CheckoutBuilder;

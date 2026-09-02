@@ -1,3 +1,5 @@
+#![expect(clippy::undocumented_unsafe_blocks)]
+
 use crate::raw;
 use libc::c_int;
 use std::fmt;
