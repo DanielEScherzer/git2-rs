@@ -1,4 +1,3 @@
-#![expect(clippy::undocumented_unsafe_blocks)]
 use crate::raw;
 use std::ptr;
 use std::str;
@@ -25,6 +24,9 @@ pub enum AttrValue<'string> {
 macro_rules! from_value {
     ($value:expr => $string:expr) => {{
         let ptr = $value.map_or(ptr::null(), |v| v.as_ptr().cast());
+        // SAFETY: git_attr_value() can be called with any char pointer since
+        // it compares to known values by address equality and does not actually
+        // read the data pointed to.
         let value = unsafe { raw::git_attr_value(ptr) };
         match value {
             raw::GIT_ATTR_VALUE_TRUE => Self::True,
