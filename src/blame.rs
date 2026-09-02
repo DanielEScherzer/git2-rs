@@ -9,6 +9,7 @@ use std::{marker, ptr};
 
 /// Opaque structure to hold blame results.
 pub struct Blame<'repo> {
+    // Pointer must never be NULL, and must always be valid to read and write.
     raw: *mut raw::git_blame,
     _marker: marker::PhantomData<&'repo Repository>,
 }
@@ -30,7 +31,6 @@ pub struct BlameIter<'blame> {
     blame: &'blame Blame<'blame>,
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Blame<'repo> {
     /// Get blame data for a file that has been modified in memory.
     ///
@@ -55,6 +55,20 @@ impl<'repo> Blame<'repo> {
         }
         let mut raw = ptr::null_mut();
 
+        // SAFETY:
+        // - git_blame_buffer()'s first parameter is writable double pointer;
+        //   the mutable reference to the pointer created above is valid.
+        // - git_blame_buffer()'s second parameter is a pointer to a valid
+        //   git_blame; self.raw is such a pointer.
+        // - git_blame_buffer()'s third parameter is a pointer to the file
+        //   contents, which is what we provide; there is no restriction on
+        //   interior null bytes given the fourth parameter.
+        // - git_blame_buffer()'s fourth parameter is the length of the file
+        //   contents that can be read; that length is provided.
+        // - Binding::from_raw() requires that it be provided a valid raw
+        //   value; try_call! will return before reaching that call if the
+        //   git_blame_buffer() call fails, if Binding::from_raw() is reached
+        //   then libgit2 will have set the `raw` pointer to be valid.
         unsafe {
             try_call!(raw::git_blame_buffer(
                 &mut raw,
@@ -68,6 +82,8 @@ impl<'repo> Blame<'repo> {
 
     /// Gets the number of hunks that exist in the blame structure.
     pub fn len(&self) -> usize {
+        // SAFETY: git_blame_get_hunk_count() is passed a valid pointer to a
+        // blame object.
         unsafe { raw::git_blame_get_hunk_count(self.raw) as usize }
     }
 
@@ -78,10 +94,14 @@ impl<'repo> Blame<'repo> {
 
     /// Gets the blame hunk at the given index.
     pub fn get_index(&self, index: usize) -> Option<BlameHunk<'_>> {
+        // SAFETY: git_blame_get_hunk_byindex() is passed a valid pointer to a
+        // blame object.
         let ptr = unsafe { raw::git_blame_get_hunk_byindex(self.raw(), index as u32) };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if git_blame_get_hunk_byindex() returns non-NULL then it
+            // returns a valid git_blame_hunk pointer.
             Some(unsafe { BlameHunk::from_raw_const(ptr) })
         }
     }
@@ -89,10 +109,14 @@ impl<'repo> Blame<'repo> {
     /// Gets the hunk that relates to the given line number in the newest
     /// commit.
     pub fn get_line(&self, lineno: usize) -> Option<BlameHunk<'_>> {
+        // SAFETY: git_blame_get_hunk_byline() is passed a valid pointer to a
+        // blame object.
         let ptr = unsafe { raw::git_blame_get_hunk_byline(self.raw(), lineno) };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if git_blame_get_hunk_byline() returns non-NULL then it
+            // returns a valid git_blame_hunk pointer.
             Some(unsafe { BlameHunk::from_raw_const(ptr) })
         }
     }
