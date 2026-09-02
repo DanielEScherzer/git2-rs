@@ -16,6 +16,7 @@ pub struct Blame<'repo> {
 
 /// Structure that represents a blame hunk.
 pub struct BlameHunk<'blame> {
+    // Pointer must never be NULL, and must always be valid to read and write.
     raw: *mut raw::git_blame_hunk,
     _marker: marker::PhantomData<&'blame raw::git_blame>,
 }
@@ -130,7 +131,6 @@ impl<'repo> Blame<'repo> {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'blame> BlameHunk<'blame> {
     unsafe fn from_raw_const(raw: *const raw::git_blame_hunk) -> BlameHunk<'blame> {
         BlameHunk {
@@ -141,6 +141,9 @@ impl<'blame> BlameHunk<'blame> {
 
     /// Returns OID of the commit where this line was last changed
     pub fn final_commit_id(&self) -> Oid {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read; Oid::from_raw() is called with a valid git_oid_t since the
+        // git_blame_hunk stores the actual git_oid_t, not a pointer to it.
         unsafe { Oid::from_raw(&(*self.raw).final_commit_id) }
     }
 
@@ -148,10 +151,15 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// The final commit is the one identified by [Self::final_commit_id()].
     pub fn final_signature(&self) -> Option<Signature<'_>> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         let ptr = unsafe { (*self.raw).final_signature };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if present, the pointer will be a valid signature
+            // pointer; that pointer will be valid at least as long as the
+            // current hunk is around.
             Some(unsafe { signature::from_raw_const(self, ptr) })
         }
     }
@@ -160,10 +168,15 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// The final commit is the one identified by [Self::final_commit_id()].
     pub fn final_committer(&self) -> Option<Signature<'_>> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         let ptr = unsafe { (*self.raw).final_committer };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if present, the pointer will be a valid signature
+            // pointer; that pointer will be valid at least as long as the
+            // current hunk is around.
             Some(unsafe { signature::from_raw_const(self, ptr) })
         }
     }
@@ -172,6 +185,8 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// Note that the start line is counting from 1.
     pub fn final_start_line(&self) -> usize {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         unsafe { (*self.raw).final_start_line_number }
     }
 
@@ -181,6 +196,9 @@ impl<'blame> BlameHunk<'blame> {
     /// except when `BlameOptions::track_copies_any_commit_copies` has been
     /// turned on
     pub fn orig_commit_id(&self) -> Oid {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read; Oid::from_raw() is called with a valid git_oid_t since the
+        // git_blame_hunk stores the actual git_oid_t, not a pointer to it.
         unsafe { Oid::from_raw(&(*self.raw).orig_commit_id) }
     }
 
@@ -188,10 +206,15 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// The original commit is the one identified by [Self::orig_commit_id()].
     pub fn orig_signature(&self) -> Option<Signature<'_>> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         let ptr = unsafe { (*self.raw).orig_signature };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if present, the pointer will be a valid signature
+            // pointer; that pointer will be valid at least as long as the
+            // current hunk is around.
             Some(unsafe { signature::from_raw_const(self, ptr) })
         }
     }
@@ -200,10 +223,15 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// The original commit is the one identified by [Self::orig_commit_id()].
     pub fn orig_committer(&self) -> Option<Signature<'_>> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         let ptr = unsafe { (*self.raw).orig_committer };
         if ptr.is_null() {
             None
         } else {
+            // SAFETY: if present, the pointer will be a valid signature
+            // pointer; that pointer will be valid at least as long as the
+            // current hunk is around.
             Some(unsafe { signature::from_raw_const(self, ptr) })
         }
     }
@@ -212,6 +240,8 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// Note that the start line is counting from 1.
     pub fn orig_start_line(&self) -> usize {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         unsafe { (*self.raw).orig_start_line_number }
     }
 
@@ -219,6 +249,10 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// Note: `None` could be returned for non-unicode paths on Windows.
     pub fn path(&self) -> Option<&Path> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read; if the path is pesent, it is a valid c-string pointer and
+        // will not be modified, meaning it can be used for reads with a
+        // reference.
         let opt_bytes = unsafe { crate::opt_bytes(self, (*self.raw).orig_path) };
         if let Some(bytes) = opt_bytes {
             Some(util::bytes2path(bytes))
@@ -230,11 +264,15 @@ impl<'blame> BlameHunk<'blame> {
     /// Tests whether this hunk has been tracked to a boundary commit
     /// (the root, or the commit specified in git_blame_options.oldest_commit).
     pub fn is_boundary(&self) -> bool {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         unsafe { (*self.raw).boundary == 1 }
     }
 
     /// Returns number of lines in this hunk.
     pub fn lines_in_hunk(&self) -> usize {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read.
         unsafe { (*self.raw).lines_in_hunk as usize }
     }
 
@@ -258,6 +296,10 @@ impl<'blame> BlameHunk<'blame> {
     ///
     /// `None` may be returned if an error occurs
     pub fn summary_bytes(&self) -> Option<&[u8]> {
+        // SAFETY: per the BlameHunk invariants the raw pointer is always safe
+        // to read; if the summary is pesent, it is a valid c-string pointer and
+        // will not be modified, meaning it can be used for reads with a
+        // reference.
         unsafe { crate::opt_bytes(self, (*self.raw).summary) }
     }
 }
