@@ -159,9 +159,10 @@ impl<'repo> Drop for BlobWriter<'repo> {
     }
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> io::Write for BlobWriter<'repo> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        // SAFETY: if self.raw is valid to read from during the lifetime of the
+        // BlobWriter.
         let write_cb = unsafe { (*self.raw).write };
         if let Some(f) = write_cb {
             let res = f(self.raw, buf.as_ptr() as *const _, buf.len());
