@@ -105,18 +105,25 @@ impl<'repo> Drop for Blob<'repo> {
 
 /// A structure to represent a git writestream for blobs
 pub struct BlobWriter<'repo> {
+    // Pointer must never be NULL, and must always be valid to read and write.
     raw: *mut raw::git_writestream,
     need_cleanup: bool,
     _marker: marker::PhantomData<Object<'repo>>,
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> BlobWriter<'repo> {
     /// Finalize blob writing stream and write the blob to the object db
     pub fn commit(mut self) -> Result<Oid, Error> {
         // After commit we already doesn't need cleanup on drop
         self.need_cleanup = false;
         let mut raw = crate::util::zeroed_raw_oid();
+        // SAFETY: git_blob_create_fromstream_commit() is passed a valid pointer
+        // to a write stream; the oid pointer provided is safe to write to.
+        // Binding::from_raw() requires that it be provided a valid raw value;
+        // try_call! will return before reaching that call if the
+        // git_blob_create_fromstream_commit() call fails, if
+        // Binding::from_raw() is reached then libgit2 will have set the `raw`
+        // pointer to be valid.
         unsafe {
             try_call!(raw::git_blob_create_fromstream_commit(&mut raw, self.raw));
             Ok(Binding::from_raw(&raw as *const _))
