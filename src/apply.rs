@@ -1,6 +1,5 @@
 //! git_apply support
 //! see original: <https://github.com/libgit2/libgit2/blob/master/include/git2/apply.h>
-#![expect(clippy::undocumented_unsafe_blocks)]
 
 use crate::{panic, raw, util::Binding, DiffDelta, DiffHunk};
 use libc::c_int;
@@ -49,8 +48,14 @@ type DeltaCB<'a> = dyn FnMut(Option<DiffDelta<'_>>) -> bool + 'a;
 
 extern "C" fn delta_cb_c(delta: *const raw::git_diff_delta, data: *mut c_void) -> c_int {
     panic::wrap(|| {
+        // SAFETY: libgit2 calls the delta callback with a valid pointer to the
+        // delta.
         let delta = unsafe { Binding::from_raw_opt(delta as *mut _) };
 
+        // SAFETY: libgit2 calls the delta callback with the arbitrary payload
+        // parameter specified in the git_apply_options;
+        // ApplyOptions::delta_callback() ensures that it is a valid mutable
+        // pointer to the ApplyOptions object.
         let payload = unsafe { &mut *(data as *mut ApplyOptions<'_>) };
         let callback = match payload.delta_cb {
             Some(ref mut c) => c,
@@ -69,8 +74,14 @@ extern "C" fn delta_cb_c(delta: *const raw::git_diff_delta, data: *mut c_void) -
 
 extern "C" fn hunk_cb_c(hunk: *const raw::git_diff_hunk, data: *mut c_void) -> c_int {
     panic::wrap(|| {
+        // SAFETY: libgit2 calls the hunk callback with a valid pointer to the
+        // hunk.
         let hunk = unsafe { Binding::from_raw_opt(hunk) };
 
+        // SAFETY: libgit2 calls the delta callback with the arbitrary payload
+        // parameter specified in the git_apply_options;
+        // ApplyOptions::hunk_callback() ensures that it is a valid mutable
+        // pointer to the ApplyOptions object.
         let payload = unsafe { &mut *(data as *mut ApplyOptions<'_>) };
         let callback = match payload.hunk_cb {
             Some(ref mut c) => c,
@@ -91,11 +102,19 @@ impl<'cb> ApplyOptions<'cb> {
     /// Creates a new set of empty options (zeroed).
     pub fn new() -> Self {
         let mut opts = Self {
+            // SAFETY: the git_apply_options struct is fine to create with all
+            // zeros (indicates version 0, NULL pointers for the optional
+            // delta callback and hunk callback, a NULL payload, and 0 flags),
+            // and even if that wasn't okay to use, the options will be
+            // initialized momentarily with git_apply_options_init().
             raw: unsafe { mem::zeroed() },
             hunk_cb: None,
             delta_cb: None,
         };
         assert_eq!(
+            // SAFETY: the pointer provided comes from a mutable reference;
+            // since we have a reference, the pointer is valid, and since it
+            // is a mutable reference, it is valid to write to.
             unsafe { raw::git_apply_options_init(&mut opts.raw, raw::GIT_APPLY_OPTIONS_VERSION) },
             0
         );
