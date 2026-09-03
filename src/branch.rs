@@ -22,7 +22,6 @@ pub struct Branches<'repo> {
     _marker: marker::PhantomData<References<'repo>>,
 }
 
-#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Branch<'repo> {
     /// Creates Branch type from a Reference
     pub fn wrap(reference: Reference<'_>) -> Branch<'_> {
@@ -34,6 +33,8 @@ impl<'repo> Branch<'repo> {
         crate::init();
         let name = CString::new(name)?;
         let mut valid: libc::c_int = 0;
+        // SAFETY: git_branch_name_is_valid() is called with a writable integer
+        // to write to, and a null-terminated C-string to read.
         unsafe {
             try_call!(raw::git_branch_name_is_valid(&mut valid, name.as_ptr()));
         }
@@ -57,6 +58,8 @@ impl<'repo> Branch<'repo> {
 
     /// Delete an existing branch reference.
     pub fn delete(&mut self) -> Result<(), Error> {
+        // SAFETY: git_branch_delete() is called with a pointer to a valid
+        // git_reference, based on Reference::raw().
         unsafe {
             try_call!(raw::git_branch_delete(self.get().raw()));
         }
@@ -65,6 +68,8 @@ impl<'repo> Branch<'repo> {
 
     /// Determine if the current local branch is pointed at by HEAD.
     pub fn is_head(&self) -> bool {
+        // SAFETY: git_branch_is_head() is called with a pointer to a valid
+        // git_reference, based on Reference::raw().
         unsafe { raw::git_branch_is_head(&*self.get().raw()) == 1 }
     }
 
@@ -72,6 +77,13 @@ impl<'repo> Branch<'repo> {
     pub fn rename(&mut self, new_branch_name: &str, force: bool) -> Result<Branch<'repo>, Error> {
         let mut ret = ptr::null_mut();
         let new_branch_name = CString::new(new_branch_name)?;
+        // SAFETY: git_branch_move() is called with a double pointer to write
+        // to, a pointer to a valid git_reference based on Reference::raw(),
+        // a nll-terminated C-string to read, and a boolean force option.
+        // Binding::from_raw() requires that it be provided a valid raw
+        // value; try_call! will return before reaching that call if the
+        // git_branch_move() call fails, if Binding::from_raw() is reached
+        // then libgit2 will have set the `ret` pointer to be valid.
         unsafe {
             try_call!(raw::git_branch_move(
                 &mut ret,
@@ -93,6 +105,12 @@ impl<'repo> Branch<'repo> {
     /// Return the name of the given local or remote branch.
     pub fn name_bytes(&self) -> Result<&[u8], Error> {
         let mut ret = ptr::null();
+        // SAFETY: git_branch_name() is called with a double pointer to write
+        // to, and a pointer to a valid git_reference based on Reference::raw().
+        // crate::opt_bytes() requires that it be provided a valid C-string
+        // pointer; try_call! will return before reaching that call if the
+        // git_branch_name() call fails, if crate::opt_bytes() is reached
+        // then libgit2 will have set the `ret` pointer to be valid.
         unsafe {
             try_call!(raw::git_branch_name(&mut ret, &*self.get().raw()));
             Ok(crate::opt_bytes(self, ret).unwrap())
@@ -103,6 +121,12 @@ impl<'repo> Branch<'repo> {
     /// local branch reference.
     pub fn upstream(&self) -> Result<Branch<'repo>, Error> {
         let mut ret = ptr::null_mut();
+        // SAFETY: git_branch_name() is called with a double pointer to write
+        // to, and a pointer to a valid git_reference based on Reference::raw().
+        // Binding::from_raw() requires that it be provided a valid raw
+        // value; try_call! will return before reaching that call if the
+        // git_branch_upstream() call fails, if Binding::from_raw() is reached
+        // then libgit2 will have set the `ret` pointer to be valid.
         unsafe {
             try_call!(raw::git_branch_upstream(&mut ret, &*self.get().raw()));
             Ok(Branch::wrap(Binding::from_raw(ret)))
@@ -115,6 +139,9 @@ impl<'repo> Branch<'repo> {
     /// provided is the name of the branch to set as upstream.
     pub fn set_upstream(&mut self, upstream_name: Option<&str>) -> Result<(), Error> {
         let upstream_name = crate::opt_cstr(upstream_name)?;
+        // SAFETY: git_branch_is_head() is called with a pointer to a valid
+        // git_reference, based on Reference::raw(), and pointer that is either
+        // NULL or a valid null-terminated C-string.
         unsafe {
             try_call!(raw::git_branch_set_upstream(
                 self.get().raw(),
