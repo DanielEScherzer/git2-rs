@@ -1,5 +1,3 @@
-#![expect(clippy::undocumented_unsafe_blocks)]
-
 use std::ffi::CString;
 use std::marker;
 use std::ptr;
@@ -24,6 +22,7 @@ pub struct Branches<'repo> {
     _marker: marker::PhantomData<References<'repo>>,
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Branch<'repo> {
     /// Creates Branch type from a Reference
     pub fn wrap(reference: Reference<'_>) -> Branch<'_> {
@@ -142,6 +141,7 @@ impl<'repo> Branches<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Iterator for Branches<'repo> {
     type Item = Result<(Branch<'repo>, BranchType), Error>;
     fn next(&mut self) -> Option<Result<(Branch<'repo>, BranchType), Error>> {
@@ -159,6 +159,7 @@ impl<'repo> Iterator for Branches<'repo> {
     }
 }
 
+#[expect(clippy::undocumented_unsafe_blocks)]
 impl<'repo> Drop for Branches<'repo> {
     fn drop(&mut self) {
         unsafe { raw::git_branch_iterator_free(self.raw) }
